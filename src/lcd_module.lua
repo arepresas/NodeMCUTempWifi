@@ -1,34 +1,38 @@
 local lcd_module = {}
 
-local function print_wifi(ssid, ip)
+local function print_wifi(pSsid, pIp)
   lcd.locate(0,0)
-  lcd.print(ssid)
+  lcd.print(pSsid)
   lcd.locate(0,1)
-  lcd.print(ip)
+  lcd.print(pIp)
 end
 
-local function print_temp(temp, hum)
+local function print_time(pTime)
   lcd.locate(0,2)
-  lcd.print("Temp = "..temp.."C")
+  lcd.print(pTime)
+end
+
+local function print_temp(pTemp, pHum)
   lcd.locate(0,3)
-  lcd.print("Hum  = "..hum.."%")
-end
-
-local function print_min_max_day(t_min, t_max)
+  lcd.print("Temp = "..pTemp.."C")
   lcd.locate(0,4)
-  lcd.print("MinTemp = "..t_min.."C")
-  lcd.locate(0,5)
-  lcd.print("MaxTemp = "..t_max.."C")
+  lcd.print("Hum  = "..pHum.."%")
 end
 
-function lcd_module.print_screen(ssid, ip, temp, hum, t_min, t_max)
-  print("Showing info in LCD "..ssid.." "..ip.." "..temp.." "..hum.." "..t_min.." "..t_max)
+local function print_min_max_day(pT_min, pT_max)
+  lcd.locate(0,5)
+  lcd.print("Mn="..pT_min.."C".." Mx="..pT_max.."C")
+end
+
+function lcd_module.print_screen(pSsid, pIp, pTime, pTemp, pHum, pT_min, pT_max)
+  print("Showing info in LCD "..pSsid.." "..pIp.." "..pTime.." "..pTemp.." "..pHum.." "..pT_min.." "..pT_max.."\n")
   lcd.init()
   lcd.clear()
-  print_wifi(ssid,ip)
-  print_temp(temp,hum)
-  print_min_max_day(temp,temp)
-  return 1
+  print_wifi(pSsid,pIp)
+  print_time(pTime)
+  print_temp(pTemp,pHum)
+  print_min_max_day(pT_min, pT_max)
+--  return 1
 end
 
 return lcd_module
