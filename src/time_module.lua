@@ -1,5 +1,7 @@
 local time_module = {}
 
+local request_utils = require "request_utils"
+
 --local data
 
 local result
@@ -46,26 +48,12 @@ local function display(sck, response)
 
         print("-- END Display response SCK <> 0 --")
     end
-
---        local t = cjson.decode(data)
---        for k,v in pairs(t) do print(k,v) end
-
 end
 
-local function build_get_request(host, port, uri)
-
-    print("Start build request")
-
-    local request = "GET "..uri.." HTTP/1.1\r\n"..
-            "Host: "..host..":"..port.."\r\n"..
---            "Content-Type: application/json\r\n"..
+local function create_http_header()
+    return  "Content-Type: application/json\r\n"..
             "Cache-Control: no-cache\r\n"..
---            "Content-Length: "..string.len(data_json).."\n\r"..
             "Postman-Token: 0158e3ce-93e6-ae18-f06f-412344d1d4f7\r\n\r\n"
-
-    print(request)
-
-    return request
 end
 
 function time_module.get_time_from_server(host, port, uri, callback)
@@ -79,15 +67,8 @@ function time_module.get_time_from_server(host, port, uri, callback)
     socket:connect(port,host)
 
     socket:on("connection",function(sck)
-
-        local get_request = build_get_request(host,port,uri)
-
---        print(" --- Request --- ")
---        print(get_request)
---        print(" --- End Request --- ")
-
+        local get_request = request_utils.build_get_request(host, port, uri, create_http_header(), "")
         sck:send(get_request)
-
         callback(result)
     end)
 end
