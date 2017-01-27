@@ -1,4 +1,6 @@
-local json_module = {}
+local temperature_module = {}
+
+local request_utils = require "request_utils"
 
 --local data
 
@@ -6,36 +8,18 @@ local function display(sck,response)
     print(response)
 end
 
-local function build_data_for_request(data_table)
-    local data = "{"
-    for param,value in pairs(data_table) do
-        data = data .. "\""..param.."\""..":".."\""..value.."\""..","
-    end
-    data = string.sub (data, 0, string.len(data)-1) .. "}"
-
-    return data
+local function create_http_header(data_length)
+    return "Content-Type: application/json\r\n"..
+           "Cache-Control: no-cache\r\n".."Content-Length: "..
+           data_length..
+           "\n\r"..
+           "Postman-Token: 0158e3ce-93e6-ae18-f06f-412344d1d4f7\r\n\r\n"
 end
 
-local function build_post_request(host, port, uri, data_table)
+function temperature_module.save_temp_in_db(data_table, host, port, uri)
 
-    print("Start build request")
-
-    local data_json = build_data_for_request(data_table)
-
-    local request = "POST "..uri.." HTTP/1.1\r\n"..
-            "Host: "..host..":"..port.."\r\n"..
-            "Content-Type: application/json\r\n"..
-            "Cache-Control: no-cache\r\n"..
-            "Content-Length: "..string.len(data_json).."\n\r"..
-            "Postman-Token: 0158e3ce-93e6-ae18-f06f-412344d1d4f7\r\n\r\n"..
-            data_json
-
-    print(request)
-
-    return request
-end
-
-function json_module.save_temp_in_db(data_table, host, port, uri)
+    local http_body = cjson.encode(data_table)
+    local http_header = create_http_header(string.len(http_body))
 
     print("Create connection")
     socket = net.createConnection(net.TCP,8080)
@@ -47,7 +31,7 @@ function json_module.save_temp_in_db(data_table, host, port, uri)
 
     socket:on("connection",function(sck)
 
-        local post_request = build_post_request(host,port,uri,data_table)
+        local post_request = request_utils. build_post_request(host, port, uri, http_header, http_body)
 
         print(" --- Request --- ")
         print(post_request)
@@ -57,7 +41,7 @@ function json_module.save_temp_in_db(data_table, host, port, uri)
     end)
 end
 
-function json_module.print_data(data_table)
+function temperature_module.print_data(data_table)
     local data = ""
     for param,value in pairs(data_table) do
         data = data .. param.." = "..value.."\n"
@@ -65,4 +49,4 @@ function json_module.print_data(data_table)
     print("\nData = " .. data .. "\n")
 end
 
-return json_module
+return temperature_module

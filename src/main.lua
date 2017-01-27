@@ -1,7 +1,7 @@
 local mywifi = require "wifi_module"
 local mydht = require "dht_module"
 local mylcd = require "lcd_module"
-local json = require "json_module"
+local temperature = require "temperature_module"
 local time = require "time_module"
 
 -- main.lua --
@@ -82,10 +82,10 @@ tmr.alarm(0,15000, 1, function()
     }
 
     if debug == 1 then
-      json.print_data(data)
+      temperature.print_data(data)
     end
 
-    json.save_temp_in_db(data, host, port, uri_temp)
+    temperature.save_temp_in_db(data, host, port, uri_temp)
   end
 
 end)
