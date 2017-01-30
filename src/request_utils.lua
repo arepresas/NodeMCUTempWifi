@@ -2,55 +2,62 @@ local request_utils = {}
 
 
 local function create_http_host(host,  port , uri)
-    return "http://" .. host .. ":" .. port .. "/" .. uri
+    return "http://" .. host .. ":" .. port .. uri
 end
 
-function build_get_request(host, port, uri, http_header, http_body)
-
-    print("Start build GET request")
-
-    http.get(create_http_host(host,  port , uri),
-        http_header,
-        http_body,
-        function(code, data)
-            if (code < 0) then
-                print("HTTP request failed")
-            else
-                print(code, data)
-                return data
-            end
-        end)
+local function create_get_http_header()
+    return  "Cache-Control: no-cache"
 end
 
-function build_post_request(host, port, uri, http_header, http_body)
+local function debug_request_parameters(host, port, uri, http_header, http_body, callback)
+    if debug == 1 then
+        print("-- Request parameters --")
+        print(create_http_host(host,  port , uri))
+        print(http_header)
+        print(http_body)
+        print(callback)
+        print("-- Request parameters --")
+    end
+end
 
-    print("Start build POST request")
+function request_utils.build_get_request(host, port, uri, callback)
 
-    http.post(create_http_host(host,  port , uri),
-        http_header,
-        http_body,
-        function(code, data)
-            if (code < 0) then
+    print("-- Start GET request --")
+    debug_request_parameters(host, port, uri, create_get_http_header(), nil, callback)
+
+    http.get(
+        create_http_host(host,  port , uri),
+        create_get_http_header(),
+        function(pCode, pData)
+            if (pCode < 0) then
                 print("HTTP request failed")
             else
-                print(code, data)
-                return data
+                print(pCode, pData)
+                callback(cjson.decode(pData))
+            end
+        end
+    )
+    print("-- Finish GET request --")
+end
+
+function request_utils.build_post_request(host, port, uri, http_header, http_body, callback)
+
+    print("-- Start POST request --")
+    debug_request_parameters(host, port, uri, http_header, http_body, callback)
+
+    http.post(
+        create_http_host(host,  port , uri),
+        http_header,
+        http_body,
+        function(pCode, pData)
+            if (pCode < 0) then
+                print("HTTP request failed")
+            else
+                print(pCode, pData)
+                callback(pData)
             end
         end)
-
-    local data_json = cjson.encode(data_table) --build_data_for_request(data_table)
-
-    local request = "POST "..uri.." HTTP/1.1\r\n"..
-            "Host: "..host..":"..port.."\r\n"..
-            "Content-Type: application/json\r\n"..
-            "Cache-Control: no-cache\r\n"..
-            "Content-Length: "..string.len(data_json).."\n\r"..
-            "Postman-Token: 0158e3ce-93e6-ae18-f06f-412344d1d4f7\r\n\r\n"..
-            data_json
-
-    print(request)
-
-    return request
+    print("-- Finish POST request --")
 end
 
 return request_utils
