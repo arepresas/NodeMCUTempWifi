@@ -1,8 +1,8 @@
-local mywifi = require "wifi_module"
-local mydht = require "dht_module"
-local mylcd = require "lcd_module"
-local temperature = require "temperature_module"
-local time = require "time_module"
+local m_wifi = require "wifi_module"
+local m_dht = require "dht_module"
+local m_lcd = require "lcd_module"
+local m_temp = require "temperature_module"
+local m_time = require "time_module"
 
 -- main.lua --
 print('\nMain.lua : Starting\n')
@@ -11,6 +11,7 @@ print('\nMain.lua : Starting\n')
 temperatureC = 0
 humidityPC = 0
 time_between_sensor_readings = 5
+debug = 0
 
 -- Network Variables
 local ssid = "EubaWifiFree"
@@ -20,79 +21,110 @@ local ip = ""
 -- Server Config Variables
 local uri_temp = "/tempdata"
 local uri_time = "/getTimeNow"
-local host_test = "192.168.0.21"
+local uri_mMtemp = "/getMaxMinTemp"
+local port = "8080"
+local host_test = "192.168.0.17"
 local host_prod = "37.187.105.125"
 local host
-local port = 8080
 
 -- Other Variables
 local json_time = ""
+local min_temp = ""
+local max_temp = ""
 local timer = 0
 local data
-local debug = 0
 local prod = 1
 
-local function setIp(pIp)
-  if (pIp ~= nil) then
-    ip = pIp
+local function print_data(data_table)
+  local data = ""
+  for param,value in pairs(data_table) do
+    data = data .. param.." = "..value.."\n"
   end
+  print("\nData = " .. data .. "\n")
 end
 
-local function setTime(ptime)
-  if (ptime ~= nil) then
-    json_time = ptime
+local function isMod(mod, num)
+  while num > 1 do
+    --print("BEFORE num = " .. num .. " mod = " .. mod)
+    num = num / mod
+    --print("AFTER num = " .. num .. " mod = " .. mod)
+    if num == 1 then
+      --print("isMod OK")
+      return true
+    end
   end
+  --print("isMod KO")
+  return false
+end
+
+local function getTime()
+  m_time.get_time_from_server(host, port, uri_time,
+    function(ptime)
+      if (ptime ~= nil) then
+        json_time = ptime
+      end
+    end
+  )
+end
+
+local function getTemps()
+  m_temp.get_min_max_temps(
+    host,
+    port,
+    uri_mMtemp,
+    function(pMinTemp, pMaxTemp)
+      if (pMinTemp ~= nil and pMaxTemp ~= nil) then
+        max_temp = pMaxTemp
+        min_temp = pMinTemp
+      end
+    end
+  )
 end
 
 print('\nMain.lua : Connecting Wifi\n')
-mywifi.connect(ssid, pass, setIp)
+m_wifi.connect(ssid, pass,
+  function(pIp)
+    if (pIp ~= nil) then
+      ip = pIp
+    end
+  end
+)
 
 if prod == 1 then
   host = host_prod
+  debug = 0
 else
   host = host_test
+  debug = 1
 end
-
---local function set_time(local_time)
---  json_time = local_time
---end
 
 tmr.alarm(0,15000, 1, function()
 
-  time.get_time_from_server(host, port, uri_time, setTime)
+  print("TIMER = " .. timer)
 
-  print(json_time)
+  local temperatureC, humidityPC = m_dht.read()
+  m_lcd.print_screen(ssid, ip, json_time, temperatureC, humidityPC, min_temp, max_temp)
 
-  local temperatureC, humidityPC = mydht.read()
-  mylcd.print_screen(ssid, ip, json_time, temperatureC, humidityPC, "10", "15")
+  if isMod(2, timer) then
+    getTime()
+    print("TimeFromServer = " .. json_time)
+  end
 
-  timer = timer + 1
-
-  --if timer/4 == 0 then
---  local t = cjson.decode(time.get_time_from_server(host, port, uri_time))
---  for k,v in pairs(t) do print(k,v) end
-  --end
-
-  if timer == 40 then
-
-    timer = 0
+  if isMod(3, timer) then
     data = {
       temperature = temperatureC,
       humidity = humidityPC
     }
-
     if debug == 1 then
-      temperature.print_data(data)
+      print_data(data)
     end
-
-    temperature.save_temp_in_db(data, host, port, uri_temp)
+    getTemps()
   end
 
+  if isMod(50, timer) then
+    m_temp.save_temp_in_db(data, host, port, uri_temp)
+    timer = 0
+  end
+
+  timer = timer + 1
 end)
-
-
-
-
-
-
-
