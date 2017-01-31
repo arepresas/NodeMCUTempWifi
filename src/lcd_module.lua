@@ -32,7 +32,6 @@ function lcd_module.print_screen(pSsid, pIp, pTime, pTemp, pHum, pT_min, pT_max)
   print_time(pTime)
   print_temp(pTemp,pHum)
   print_min_max_day(pT_min, pT_max)
---  return 1
 end
 
 return lcd_module

@@ -15,9 +15,9 @@ local function getLocalTime(pResponse)
     end
 end
 
-function time_module.get_time_from_server(host, port, uri, callback)
-    request_utils.build_get_request(host, port, uri, getLocalTime)
-    callback(result)
+function time_module.get_time_from_server(pHost, pPort, pUri, pCallback)
+    request_utils.get_request(pHost, pPort, pUri, getLocalTime)
+    pCallback(result)
 end
 
 return time_module

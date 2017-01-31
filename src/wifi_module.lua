@@ -13,9 +13,9 @@ end
 -- WiFi Connection Verification --
 ----------------------------------
 
-function wifi_module.connect(ssid, pass, callback)
+function wifi_module.connect(pSsid, pPass, pCallback)
   init()
-  wifi.sta.config(ssid,pass)
+  wifi.sta.config(pSsid,pPass)
 
   print("Ready to Set up wifi mode ")
   wifi.sta.connect()
@@ -32,7 +32,7 @@ function wifi_module.connect(ssid, pass, callback)
         print("IP Address: ",ip)
         print("Netmask: ",nm)
         print("Gateway Addr: ",gw,'\n')
-        callback(ip)
+        pCallback(ip)
       else print("Wifi setup time more than 20s, Please verify wifi.sta.config() function. Then re-download the file.")
       end
       cnt = nil

@@ -1,6 +1,6 @@
 local m_wifi = require "wifi_module"
-local m_dht = require "dht_module"
-local m_lcd = require "lcd_module"
+local m_dht  = require "dht_module"
+local m_lcd  = require "lcd_module"
 local m_temp = require "temperature_module"
 local m_time = require "time_module"
 
@@ -8,32 +8,34 @@ local m_time = require "time_module"
 print('\nMain.lua : Starting\n')
 
 -- Global Variables
-temperatureC = 0
-humidityPC = 0
-time_between_sensor_readings = 5
-debug = 0
+debug         = false
 
 -- Network Variables
-local ssid = "EubaWifiFree"
-local pass = "Esthercita<3Abrahamcito"
-local ip = ""
+local ssid    = "EubaWifiFree"
+local pass    = "Esthercita<3Abrahamcito"
+local ip      = ""
 
 -- Server Config Variables
-local uri_temp = "/tempdata"
-local uri_time = "/getTimeNow"
-local uri_mMtemp = "/getMaxMinTemp"
-local port = "8080"
-local host_test = "192.168.0.17"
-local host_prod = "37.187.105.125"
+local uri_temp      = "/tempdata"
+local uri_time      = "/getTimeNow"
+local uri_mMtemp    = "/getMaxMinTemp"
+local port          = "8080"
+local host_test     = "192.168.0.17"
+local host_prod     = "37.187.105.125"
 local host
+local prod          = true
+
+-- Data variables
+local temperatureC  = 0
+local humidityPC    = 0
+local data
 
 -- Other Variables
-local json_time = ""
-local min_temp = ""
-local max_temp = ""
-local timer = 0
-local data
-local prod = 1
+local json_time     = ""
+local min_temp      = ""
+local max_temp      = ""
+local timer         = 0
+
 
 local function print_data(data_table)
   local data = ""
@@ -68,10 +70,7 @@ local function getTime()
 end
 
 local function getTemps()
-  m_temp.get_min_max_temps(
-    host,
-    port,
-    uri_mMtemp,
+  m_temp.get_min_max_temps(host, port, uri_mMtemp,
     function(pMinTemp, pMaxTemp)
       if (pMinTemp ~= nil and pMaxTemp ~= nil) then
         max_temp = pMaxTemp
@@ -90,12 +89,12 @@ m_wifi.connect(ssid, pass,
   end
 )
 
-if prod == 1 then
+if prod then
   host = host_prod
-  debug = 0
+  debug = false
 else
   host = host_test
-  debug = 1
+  debug = true
 end
 
 tmr.alarm(0,15000, 1, function()
@@ -115,13 +114,13 @@ tmr.alarm(0,15000, 1, function()
       temperature = temperatureC,
       humidity = humidityPC
     }
-    if debug == 1 then
+    if debug then
       print_data(data)
     end
     getTemps()
   end
 
-  if isMod(50, timer) then
+  if isMod(53, timer) then
     m_temp.save_temp_in_db(data, host, port, uri_temp)
     timer = 0
   end

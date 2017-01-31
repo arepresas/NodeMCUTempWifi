@@ -16,17 +16,17 @@ local function get_max_min_values(pResponse)
         if k == "minTemp" then
             print("MinTemp = "..v)
             minTemp = v
-        else
+        elseif k == "maxTemp" then
             print("MaxTemp = "..v)
             maxTemp = v
         end
     end
 end
 
-function temperature_module.save_temp_in_db(data_table, host, port, uri)
-    request_utils.build_post_request(host, port, uri,
+function temperature_module.save_temp_in_db(pData_table, pHost, pPort, pUri)
+    request_utils.post_request(pHost, pPort, pUri,
         create_http_header(),
-        cjson.encode(data_table),
+        cjson.encode(pData_table),
         function(pResult)
             if pResult == nil then
                 print("save_temp_in_db KO")
@@ -37,9 +37,9 @@ function temperature_module.save_temp_in_db(data_table, host, port, uri)
     )
 end
 
-function temperature_module.get_min_max_temps(host, port, uri, callback)
-    request_utils.build_get_request(host, port, uri, get_max_min_values)
-    callback(minTemp, maxTemp)
+function temperature_module.get_min_max_temps(pHost, pPort, pUri, pCallback)
+    request_utils.get_request(pHost, pPort, pUri, get_max_min_values)
+    pCallback(minTemp, maxTemp)
 end
 
 return temperature_module
