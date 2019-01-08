@@ -14,18 +14,20 @@ time_between_sensor_readings = 5
 debug = 0
 
 -- Network Variables
-local ssid = "EubaWifiFree"
-local pass = "Esthercita<3Abrahamcito"
+local ssid = "EubaWifiDDWRT"
+local pass = "EstherAbrahamRoubaix"
 local ip = ""
 
 -- Server Config Variables
 local uri_temp = "/tempdata"
-local uri_time = "/getTimeNow"
+local uri_time = "/time"
 local uri_mMtemp = "/getMaxMinTemp"
-local port = "8080"
 local host_test = "192.168.0.17"
-local host_prod = "37.187.105.125"
+local port_test = "8080"
+local host_prod = "arepresas-tempserver.appspot.com"
+local port_prod = "80"
 local host
+local port
 
 -- Other Variables
 local json_time = ""
@@ -92,9 +94,11 @@ m_wifi.connect(ssid, pass,
 
 if prod == 1 then
   host = host_prod
+  port = port_prod
   debug = 0
 else
   host = host_test
+  port = port_test
   debug = 1
 end
 
